@@ -10,6 +10,47 @@
 
 @section('content')
     <style>
+        /* ---------- Kartu produk ---------- */
+        .produk-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.4rem 1.2rem; }
+        button.produk { background: transparent; border: 0; border-radius: 0; overflow: visible; display: block; padding: 0 0 .3rem; text-align: left; }
+        button.produk:hover:not(:disabled) { border-color: transparent; }
+        .produk-foto {
+            position: relative; height: 150px; border-radius: 20px; overflow: hidden;
+            display: grid; place-items: start center; padding-top: 14px;
+            background: radial-gradient(120% 90% at 30% 10%, #FFFFFF 0%, var(--galon) 60%, #9FD3E6 100%);
+        }
+        .produk-foto svg { height: 88px; width: auto; transition: transform .25s; }
+        .produk-foto .tutup-galon { fill: var(--tutup); }
+        .produk-foto .badan-galon { fill: rgba(255,255,255,.85); stroke: var(--laut-2); stroke-width: 2; }
+        button.produk:hover:not(:disabled) .produk-foto svg { transform: translateY(-4px) rotate(-3deg); }
+        .produk-kartu {
+            position: relative; margin: -44px 12px 0; padding: .9rem 1rem 1rem;
+            background: var(--putih); border-radius: 16px; box-shadow: 0 10px 24px rgba(11,60,93,.12);
+            display: grid; gap: .15rem; transition: background .2s, transform .2s;
+        }
+        button.produk:hover:not(:disabled) .produk-kartu { transform: translateY(-3px); }
+        .produk-kategori { font-size: .8rem; color: var(--air); }
+        .produk-nama { font-weight: 600; color: var(--tinta); line-height: 1.3; }
+        .produk-harga { margin-top: .35rem; font-weight: 600; color: var(--laut-2); font-variant-numeric: tabular-nums; }
+        button.produk.dipilih .produk-kartu { background: var(--air); }
+        button.produk.dipilih .produk-kategori,
+        button.produk.dipilih .produk-nama,
+        button.produk.dipilih .produk-harga { color: var(--putih); }
+        .produk-jumlah {
+            position: absolute; top: 10px; right: 10px; min-width: 30px; height: 30px; padding: 0 .55rem;
+            border-radius: 999px; background: var(--tutup); color: var(--laut-gelap);
+            display: grid; place-items: center; font-weight: 700; font-size: .9rem;
+        }
+        .produk-jumlah[hidden] { display: none; }
+
+        /* ---------- Air di galon bergoyang ---------- */
+        .produk-foto .ombak-depan { fill: #1E9BC4; animation: ombak-galon 2.4s linear infinite; animation-delay: var(--tunda, 0s); }
+        .produk-foto .ombak-belakang { fill: #5CC3E2; opacity: .6; animation: ombak-galon 3.6s linear infinite reverse; animation-delay: var(--tunda, 0s); }
+        .produk-foto .isi-air { animation: naik-turun-air 3s ease-in-out infinite; animation-delay: var(--tunda, 0s); }
+        @keyframes ombak-galon { from { transform: translateX(0); } to { transform: translateX(-20px); } }
+        @keyframes naik-turun-air { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.5px); } }
+
+        /* ---------- Dialog QRIS ---------- */
         .dialog-qris { width: min(440px, calc(100% - 2rem)); text-align: center; }
         .qris-kepala { text-align: left; margin-bottom: 1rem; }
         .qris-kepala h2 { margin-bottom: .2rem; }
@@ -25,7 +66,12 @@
         @keyframes denyut { 50% { opacity: .3; transform: scale(.7); } }
         .dialog-qris .kolom { text-align: left; margin-top: 1.2rem; }
         .dialog-qris .aksi-dialog { justify-content: center; }
-        @media (prefers-reduced-motion: reduce) { .titik-tunggu { animation: none; } }
+
+        /* ---------- Untuk pengguna yang mematikan animasi ---------- */
+        @media (prefers-reduced-motion: reduce) {
+            .produk-foto svg, .produk-kartu { transition: none; }
+            .produk-foto .ombak-depan, .produk-foto .ombak-belakang, .produk-foto .isi-air, .titik-tunggu { animation: none; }
+        }
     </style>
 
     <header class="kepala">
@@ -118,24 +164,36 @@
             @else
                 <div class="produk-grid">
                     @foreach ($produk as $item)
+                        @php
+                            $namaKecil = strtolower($item->name);
+                            $kategori = str_contains($namaKecil, 'antar') ? 'Layanan'
+                                : (str_contains($namaKecil, 'galon baru') ? 'Galon baru' : 'Isi ulang');
+                        @endphp
                         <button type="button" class="produk" data-id="{{ $item->id }}" data-nama="{{ $item->name }}"
                                 data-harga="{{ $item->price }}" @disabled(! $sesiKas)>
-                            <div class="produk-gambar" aria-hidden="true">
-                                <svg viewBox="0 0 60 90">
+                            <div class="produk-foto" aria-hidden="true">
+                                <svg viewBox="0 0 60 90" style="--tunda: -{{ $loop->index * 0.7 }}s">
                                     <defs>
                                         <clipPath id="galon-{{ $item->id }}">
                                             <path d="M23 18c0 4-14 6-14 15v45c0 6 5 10 11 10h20c6 0 11-4 11-10V33c0-9-14-11-14-15z"/>
                                         </clipPath>
                                     </defs>
                                     <rect class="tutup-galon" x="21" y="3" width="18" height="8" rx="3"/>
-                                    <rect x="23" y="10" width="14" height="9" rx="2" fill="#CDE8F1"/>
+                                    <rect x="23" y="10" width="14" height="9" rx="2" fill="#FFFFFF"/>
                                     <path class="badan-galon" d="M23 18c0 4-14 6-14 15v45c0 6 5 10 11 10h20c6 0 11-4 11-10V33c0-9-14-11-14-15z"/>
-                                    <rect class="air-galon" x="0" y="40" width="60" height="50" clip-path="url(#galon-{{ $item->id }})"/>
+                                    <g clip-path="url(#galon-{{ $item->id }})">
+                                        <g class="isi-air">
+                                            <path class="ombak-belakang" d="M0 40 Q5 43 10 40 T20 40 T30 40 T40 40 T50 40 T60 40 T70 40 T80 40 T90 40 T100 40 V90 H0 Z"/>
+                                            <path class="ombak-depan" d="M0 42 Q5 39 10 42 T20 42 T30 42 T40 42 T50 42 T60 42 T70 42 T80 42 T90 42 T100 42 V90 H0 Z"/>
+                                        </g>
+                                    </g>
                                 </svg>
+                                <span class="produk-jumlah" hidden></span>
                             </div>
-                            <div class="produk-teks">
-                                <span class="nama">{{ $item->name }}</span>
-                                <span class="harga angka">{{ $rupiah($item->price) }}</span>
+                            <div class="produk-kartu">
+                                <span class="produk-kategori">{{ $kategori }}</span>
+                                <span class="produk-nama">{{ $item->name }}</span>
+                                <span class="produk-harga">{{ $rupiah($item->price) }}</span>
                             </div>
                         </button>
                     @endforeach
@@ -321,6 +379,15 @@
                     tampilkan();
                 });
                 daftar.append(li);
+            });
+
+            // Kartu produk yang ada di pesanan berubah biru dan menampilkan jumlahnya
+            document.querySelectorAll('.produk[data-id]').forEach((kartu) => {
+                const item = pesanan.get(kartu.dataset.id);
+                const lencana = kartu.querySelector('.produk-jumlah');
+                kartu.classList.toggle('dipilih', Boolean(item));
+                lencana.hidden = !item;
+                lencana.textContent = item ? item.qty : '';
             });
 
             const ada = pesanan.size > 0;
