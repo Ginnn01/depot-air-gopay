@@ -50,11 +50,6 @@
         @keyframes ombak-galon { from { transform: translateX(0); } to { transform: translateX(-20px); } }
         @keyframes naik-turun-air { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.5px); } }
 
-        /* ---------- Tombol kirim rekap ke WhatsApp ---------- */
-        .tombol-rekap { margin-top: .9rem; background: var(--putih); color: #1C6A42; }
-        .tombol-rekap:hover { background: #E6F5EC; }
-        .tombol-rekap svg { width: 18px; height: 18px; }
-
         /* ---------- Dialog QRIS ---------- */
         .dialog-qris { width: min(440px, calc(100% - 2rem)); text-align: center; }
         .qris-kepala { text-align: left; margin-bottom: 1rem; }
@@ -120,45 +115,14 @@
     @endif
 
     @if ($ringkasanTutup)
-        @php
-            $r = $ringkasanTutup;
-            $nomorPemilik = preg_replace('/\D/', '', (string) config('services.whatsapp.pemilik'));
-            $pesanRekap = isset($r['tanggal'])
-                ? implode("\n", array_filter([
-                    '*Rekap tutup kas ' . config('app.name') . '*',
-                    $r['tanggal'],
-                    'Kasir: ' . $r['kasir'] . ', pukul ' . $r['dibuka'] . ' sampai ' . $r['ditutup'],
-                    '',
-                    'Transaksi lunas: ' . $r['transaksi'],
-                    'Kas awal: ' . $rupiah($r['kas_awal']),
-                    'Penjualan tunai: ' . $rupiah($r['tunai']),
-                    'Penjualan QRIS: ' . $rupiah($r['qris']),
-                    'Uang di laci: ' . $rupiah($r['aktual']),
-                    $r['catatan'] ? 'Catatan kasir: ' . $r['catatan'] : null,
-                    '',
-                    'Detail selisih bisa dicek di menu Riwayat Kas.',
-                ], fn ($baris) => $baris !== null))
-                : null;
-            $linkRekap = ($nomorPemilik && $pesanRekap)
-                ? 'https://wa.me/' . $nomorPemilik . '?text=' . rawurlencode($pesanRekap)
-                : null;
-        @endphp
         <section class="nota pas" aria-label="Kas sudah ditutup">
             <div>
                 <h2>Kas sudah ditutup</h2>
                 <p>Hasil hitungan uang di laci sudah dicatat dan akan dicocokkan oleh pemilik.</p>
-                @if ($linkRekap)
-                    <a href="{{ $linkRekap }}" target="_blank" rel="noopener" class="tombol tombol-rekap">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>
-                        </svg>
-                        Kirim rekap ke WhatsApp pemilik
-                    </a>
-                @endif
             </div>
             <div class="kembalian">
                 <span>Uang di laci</span>
-                <strong class="angka">{{ $rupiah($r['aktual']) }}</strong>
+                <strong class="angka">{{ $rupiah($ringkasanTutup['aktual']) }}</strong>
             </div>
         </section>
     @endif
@@ -532,6 +496,4 @@
         });
     })();
     </script>
-
-    @includeIf('partials.wa-pesanan')
 @endsection

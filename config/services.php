@@ -45,9 +45,4 @@ return [
         'mode' => env('QRIS_MODE', 'midtrans'),
     ],
 
-    'whatsapp' => [
-        'nomor' => env('WHATSAPP_DEPOT'),
-        'pemilik' => env('WHATSAPP_PEMILIK'),
-    ],
-
 ];
