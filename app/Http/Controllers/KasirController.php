@@ -16,7 +16,7 @@ class KasirController extends Controller
         $sesiKas = $this->sesiAktif($request);
         $penjualanTunai = $sesiKas ? $sesiKas->cashSalesTotal() : 0;
 
-                // Nota tampil setelah bayar tunai (session) atau setelah QRIS lunas (?nota=)
+        // Nota tampil setelah bayar tunai (session) atau setelah QRIS lunas (?nota=)
         $idNota = session('transaksi_baru') ?? $request->integer('nota');
 
         $transaksiBaru = $idNota
@@ -76,10 +76,21 @@ class KasirController extends Controller
 
         $sesiKas->close($data['actual_cash'], $data['notes'] ?? null);
 
+        // Data rekap untuk kasir dan pesan WhatsApp ke pemilik.
+        // Selisih sengaja tidak dikirim, hanya dilihat pemilik di Riwayat Kas.
+        $lunas = $sesiKas->transactions()->where('status', 'lunas');
+
         return redirect()->route('kasir')->with('ringkasan_tutup', [
-           
             'aktual' => $sesiKas->actual_cash,
-          
+            'kasir' => $request->user()->name,
+            'tanggal' => $sesiKas->opened_at->translatedFormat('l, d F Y'),
+            'dibuka' => $sesiKas->opened_at->format('H:i'),
+            'ditutup' => $sesiKas->closed_at->format('H:i'),
+            'kas_awal' => $sesiKas->opening_cash,
+            'tunai' => (int) (clone $lunas)->where('payment_method', 'tunai')->sum('total'),
+            'qris' => (int) (clone $lunas)->where('payment_method', 'qris')->sum('total'),
+            'transaksi' => (clone $lunas)->count(),
+            'catatan' => $sesiKas->notes,
         ]);
     }
 

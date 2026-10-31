@@ -34,12 +34,20 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+
     'midtrans' => [
         'server_key' => env('MIDTRANS_SERVER_KEY'),
         'client_key' => env('MIDTRANS_CLIENT_KEY'),
         'is_production' => (bool) env('MIDTRANS_IS_PRODUCTION', false),
     ],
-        'qris' => [
+
+    'qris' => [
         'mode' => env('QRIS_MODE', 'midtrans'),
     ],
+
+    'whatsapp' => [
+        'nomor' => env('WHATSAPP_DEPOT'),
+        'pemilik' => env('WHATSAPP_PEMILIK'),
+    ],
+
 ];
