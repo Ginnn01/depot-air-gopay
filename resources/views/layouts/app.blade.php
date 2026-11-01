@@ -5,6 +5,9 @@
         ->map(fn ($kata) => mb_strtoupper(mb_substr($kata, 0, 1)))
         ->take(2)
         ->implode('');
+    $keteranganPeran = $pengguna->role === 'kasir' && $pengguna->shift
+        ? 'Kasir shift ' . $pengguna->shift
+        : ucfirst($pengguna->role);
 @endphp
 <!DOCTYPE html>
 <html lang="id">
@@ -32,13 +35,20 @@
                         <rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/>
                         <rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/>
                     </svg>
-                                        Dashboard
+                    Dashboard
                 </a>
-                <a href="{{ route('riwayat-kas') }}" @if (request()->routeIs('riwayat-kas')) aria-current="page" @endif>
+                <a href="{{ route('riwayat-kas') }}" @if (request()->routeIs('riwayat-kas*')) aria-current="page" @endif>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="m9 13 2 2 4-4"/>
                     </svg>
                     Riwayat Kas
+                </a>
+                <a href="{{ route('kelola-kasir') }}" @if (request()->routeIs('kelola-kasir*')) aria-current="page" @endif>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/>
+                        <path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/>
+                    </svg>
+                    Kasir &amp; Shift
                 </a>
             @endif
             <a href="{{ route('kasir') }}" @if (request()->routeIs('kasir')) aria-current="page" @endif>
@@ -59,7 +69,7 @@
             <span class="inisial" aria-hidden="true">{{ $inisial }}</span>
             <div class="akun-teks">
                 <div class="nama">{{ $pengguna->name }}</div>
-                <div class="peran">{{ ucfirst($pengguna->role) }}</div>
+                <div class="peran">{{ $keteranganPeran }}</div>
             </div>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class CashSession extends Model
 {
     protected $fillable = [
-        'user_id', 'opened_at', 'closed_at', 'opening_cash',
+        'user_id', 'shift', 'opened_at', 'closed_at', 'opening_cash',
         'expected_cash', 'actual_cash', 'difference', 'notes', 'status',
         'verified_at', 'verified_by',
     ];

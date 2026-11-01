@@ -48,14 +48,18 @@ class KasirController extends Controller
             return back()->with('error', 'Kas Anda sudah dibuka.');
         }
 
+        // Shift mengikuti shift kasir. Kalau belum diatur (misalnya pemilik), ditentukan dari jam.
+        $shift = $request->user()->shift ?? (now()->hour < 15 ? 'pagi' : 'malam');
+
         CashSession::create([
             'user_id' => $request->user()->id,
+            'shift' => $shift,
             'opened_at' => now(),
             'opening_cash' => $data['opening_cash'],
             'status' => 'buka',
         ]);
 
-        return back()->with('sukses', 'Kas dibuka. Silakan mulai melayani pembeli.');
+        return back()->with('sukses', 'Kas shift ' . $shift . ' dibuka. Silakan mulai melayani pembeli.');
     }
 
     public function tutupKas(Request $request): RedirectResponse
@@ -76,21 +80,9 @@ class KasirController extends Controller
 
         $sesiKas->close($data['actual_cash'], $data['notes'] ?? null);
 
-        // Data rekap untuk kasir dan pesan WhatsApp ke pemilik.
-        // Selisih sengaja tidak dikirim, hanya dilihat pemilik di Riwayat Kas.
-        $lunas = $sesiKas->transactions()->where('status', 'lunas');
-
+        // Kasir hanya melihat uang yang ia hitung, selisih hanya untuk pemilik
         return redirect()->route('kasir')->with('ringkasan_tutup', [
             'aktual' => $sesiKas->actual_cash,
-            'kasir' => $request->user()->name,
-            'tanggal' => $sesiKas->opened_at->translatedFormat('l, d F Y'),
-            'dibuka' => $sesiKas->opened_at->format('H:i'),
-            'ditutup' => $sesiKas->closed_at->format('H:i'),
-            'kas_awal' => $sesiKas->opening_cash,
-            'tunai' => (int) (clone $lunas)->where('payment_method', 'tunai')->sum('total'),
-            'qris' => (int) (clone $lunas)->where('payment_method', 'qris')->sum('total'),
-            'transaksi' => (clone $lunas)->count(),
-            'catatan' => $sesiKas->notes,
         ]);
     }
 

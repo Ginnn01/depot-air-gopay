@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KasirController;
+use App\Http\Controllers\KelolaKasirController;
 use App\Http\Controllers\MidtransNotificationController;
 use App\Http\Controllers\RiwayatKasController;
 use App\Http\Controllers\TransaksiController;
@@ -28,9 +29,15 @@ Route::middleware('auth')->group(function () {
     // Khusus pemilik
     Route::middleware('role:pemilik')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
         Route::get('/riwayat-kas', [RiwayatKasController::class, 'index'])->name('riwayat-kas');
         Route::post('/riwayat-kas/{cashSession}/verifikasi', [RiwayatKasController::class, 'verifikasi'])
             ->name('riwayat-kas.verifikasi');
+
+        Route::get('/kelola-kasir', [KelolaKasirController::class, 'index'])->name('kelola-kasir');
+        Route::post('/kelola-kasir', [KelolaKasirController::class, 'store'])->name('kelola-kasir.store');
+        Route::put('/kelola-kasir/{user}', [KelolaKasirController::class, 'update'])->name('kelola-kasir.update');
+        Route::post('/kelola-kasir/{user}/status', [KelolaKasirController::class, 'status'])->name('kelola-kasir.status');
     });
 
     // Kasir dan pemilik
@@ -40,7 +47,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/tutup-kas', [KasirController::class, 'tutupKas'])->name('kasir.tutup');
         Route::post('/transaksi-tunai', [TransaksiController::class, 'storeTunai'])->name('kasir.transaksi');
         Route::post('/transaksi-qris', [TransaksiController::class, 'storeQris'])->name('kasir.qris');
-                Route::post('/transaksi-qris-manual', [TransaksiController::class, 'storeQrisManual'])->name('kasir.qris.manual');
+        Route::post('/transaksi-qris-manual', [TransaksiController::class, 'storeQrisManual'])->name('kasir.qris.manual');
         Route::get('/transaksi/{transaction}/status', [TransaksiController::class, 'statusQris'])->name('kasir.qris.status');
         Route::post('/transaksi/{transaction}/batal-qris', [TransaksiController::class, 'batalQris'])->name('kasir.qris.batal');
     });
